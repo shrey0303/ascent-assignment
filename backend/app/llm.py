@@ -55,8 +55,10 @@ def chat(messages: list[dict], tools: list[dict] | None = None, json_mode: bool 
             time.sleep(2 ** attempt)
             continue
         if response.status_code in _RETRY_STATUS and attempt < attempts - 1:
-            time.sleep(float(response.headers.get("retry-after", 2 ** attempt)))
-            continue
+            wait = float(response.headers.get("retry-after", 2 ** attempt))
+            if wait <= config.LLM_MAX_RETRY_WAIT_SECONDS:  # never hold a chat open for a daily-cap wait
+                time.sleep(wait)
+                continue
         if response.status_code >= 400:
             raise LLMError(f"LLM error {response.status_code}: {response.text[:300]}")
         data = response.json()

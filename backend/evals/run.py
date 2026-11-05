@@ -264,8 +264,21 @@ def main(argv=None) -> int:
         print("LLM_API_KEY is not set (see .env.example).")
         return 2
     started = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    RESULTS_DIR.mkdir(exist_ok=True)
+    stem = RESULTS_DIR / (datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S") + "_"
+                          + re.sub(r"[^A-Za-z0-9]+", "-", config.LLM_MODEL))
+
+    def save(results: list[dict], note: str = "") -> tuple[dict, str]:
+        """Written after every case, so a stopped run keeps what it finished."""
+        summary = summarize(results)
+        report = markdown(summary, results, started) + (f"\n**Run incomplete:** {note}\n" if note else "")
+        stem.with_suffix(".json").write_text(json.dumps({"summary": summary, "results": results}, indent=2,
+                                                        ensure_ascii=False, default=str), encoding="utf-8")
+        stem.with_suffix(".md").write_text(report, encoding="utf-8")
+        return summary, report
+
     print(f"Running {len(cases)} cases with {config.LLM_MODEL}\n")
-    results = []
+    results, note = [], ""
     with TestClient(app) as client:
         for number, case in enumerate(cases, 1):
             result = run_case(client, case, 0)
@@ -277,18 +290,18 @@ def main(argv=None) -> int:
             failed = [c["name"] for c in result["checks"] if not c["passed"]]
             print(f"[{number}/{len(cases)}] {case['id']:<16} {'PASS' if result['passed'] else 'FAIL'} {seconds:5.1f} s"
                   + (f"  {failed}" if failed else ""), flush=True)
+            if any(t["errors"] for t in result["turns"]):
+                note = (f"the LLM was still unavailable after a retry at case {case['id']} "
+                        f"({len(cases) - number} cases not run). Check the provider's rate limits and re-run.")
+                save(results, note)
+                break
+            save(results)
             if args.pause and number < len(cases):
                 time.sleep(args.pause)
 
-    summary = summarize(results)
-    RESULTS_DIR.mkdir(exist_ok=True)
-    stem = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S") + "_" + re.sub(r"[^A-Za-z0-9]+", "-", config.LLM_MODEL)
-    report = markdown(summary, results, started)
-    (RESULTS_DIR / f"{stem}.json").write_text(json.dumps({"summary": summary, "results": results}, indent=2,
-                                                         ensure_ascii=False, default=str), encoding="utf-8")
-    (RESULTS_DIR / f"{stem}.md").write_text(report, encoding="utf-8")
-    print("\n" + report.split("## Failures")[0])
-    print(f"Full results: {RESULTS_DIR / stem}.json / .md")
+    summary, report = save(results, note)
+    print("\n" + report.split("## Failures")[0] + (f"Run incomplete: {note}\n" if note else ""))
+    print(f"Full results: {stem}.json / .md")
     return 1 if summary["critical_failures"] else 0
 
 

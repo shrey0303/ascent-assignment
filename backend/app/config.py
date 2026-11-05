@@ -50,6 +50,7 @@ LLM_PRICE_IN_PER_M = float(os.getenv("LLM_PRICE_IN_PER_M", "0.15"))   # USD per 
 LLM_PRICE_OUT_PER_M = float(os.getenv("LLM_PRICE_OUT_PER_M", "0.60"))  # USD per 1M output tokens
 LLM_REASONING_EFFORT = os.getenv("LLM_REASONING_EFFORT", "")          # only sent if set (reasoning models)
 LLM_TIMEOUT_SECONDS = 30
+LLM_MAX_RETRY_WAIT_SECONDS = 60  # per-minute limits clear within this; a longer wait (daily cap) fails fast
 AGENT_MAX_STEPS = 6            # max LLM round-trips per user message
 TOOL_OUTPUT_MAX_CHARS = 6000   # tool results are truncated before going back to the model
 HISTORY_MAX_MESSAGES = 16      # earlier turns kept for follow-up questions

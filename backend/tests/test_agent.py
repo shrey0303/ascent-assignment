@@ -88,3 +88,14 @@ def test_plan_comes_from_reasoning_when_content_is_empty(users, monkeypatch):
     monkeypatch.setattr(llm, "chat", lambda messages, tools=None, json_mode=False: llm.LLMResult(next(replies), "fake", 1, 1, 0.0, 1))
     plans = [e for e in agent.run_turn(users["lumen_user"], None, "my orders") if e["type"] == "plan"]
     assert plans and plans[0]["text"] == "Need the order first."
+
+
+def test_daily_rate_limit_fails_fast_instead_of_sleeping(monkeypatch):
+    """A 429 asking for a 27-minute wait (daily cap) must not hold the chat open."""
+    import httpx
+    import pytest
+    monkeypatch.setattr(config, "LLM_API_KEY", "test")
+    monkeypatch.setattr(httpx, "post", lambda *a, **k: httpx.Response(429, headers={"retry-after": "1631"}, text="TPD"))
+    monkeypatch.setattr(llm.time, "sleep", lambda s: pytest.fail(f"slept {s} s"))
+    with pytest.raises(llm.LLMError):
+        llm.chat([{"role": "user", "content": "hi"}])
