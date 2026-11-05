@@ -1,0 +1,212 @@
+{
+  "c1f928be229e3a2ca786255073e2e9d718a3426847e7748e99af2d7ab05a3990": {
+    "doc_id": "01_Support_Policy_v3_CURRENT",
+    "model": "openai/gpt-oss-120b",
+    "terms": [
+      {
+        "field": "response_target",
+        "value": "30 minutes, 24x7",
+        "severity": "P1",
+        "plan": "Enterprise",
+        "quote": "Enterprise | 30 minutes, 24x7 | 2 hours | 1 business day"
+      },
+      {
+        "field": "response_target",
+        "value": "2 hours",
+        "severity": "P2",
+        "plan": "Enterprise",
+        "quote": "Enterprise | 30 minutes, 24x7 | 2 hours | 1 business day"
+      },
+      {
+        "field": "response_target",
+        "value": "1 business day",
+        "severity": "P3",
+        "plan": "Enterprise",
+        "quote": "Enterprise | 30 minutes, 24x7 | 2 hours | 1 business day"
+      },
+      {
+        "field": "response_target",
+        "value": "2 business hours",
+        "severity": "P1",
+        "plan": "Growth",
+        "quote": "Growth | 2 business hours | 4 business hours | 2 business days"
+      },
+      {
+        "field": "response_target",
+        "value": "4 business hours",
+        "severity": "P2",
+        "plan": "Growth",
+        "quote": "Growth | 2 business hours | 4 business hours | 2 business days"
+      },
+      {
+        "field": "response_target",
+        "value": "2 business days",
+        "severity": "P3",
+        "plan": "Growth",
+        "quote": "Growth | 2 business hours | 4 business hours | 2 business days"
+      },
+      {
+        "field": "response_target",
+        "value": "4 business hours",
+        "severity": "P1",
+        "plan": "Standard",
+        "quote": "Standard | 4 business hours | 1 business day | 2 business days"
+      },
+      {
+        "field": "response_target",
+        "value": "1 business day",
+        "severity": "P2",
+        "plan": "Standard",
+        "quote": "Standard | 4 business hours | 1 business day | 2 business days"
+      },
+      {
+        "field": "response_target",
+        "value": "2 business days",
+        "severity": "P3",
+        "plan": "Standard",
+        "quote": "Standard | 4 business hours | 1 business day | 2 business days"
+      }
+    ],
+    "rejected": []
+  },
+  "b4adc71ce5a34578b2ccbe06717be5619b6a93eb84737a2d6dfec166243fad57": {
+    "doc_id": "03_Cancellation_and_Service_Credit_SOP_v4",
+    "model": "openai/gpt-oss-120b",
+    "terms": [
+      {
+        "field": "cancellation_free_window_minutes",
+        "value": 30,
+        "severity": null,
+        "plan": null,
+        "quote": "No fee within 30 minutes of booking."
+      },
+      {
+        "field": "cancellation_fee_inr",
+        "value": 250,
+        "severity": null,
+        "plan": null,
+        "quote": "After 30 minutes, charge INR 250 unless a customer agreement explicitly waives the cancellation fee."
+      },
+      {
+        "field": "credit_delay_threshold_hours",
+        "value": 2,
+        "severity": null,
+        "plan": null,
+        "quote": "a customer is eligible for a service credit when the pickup is more than 2 hours past the end of the scheduled pickup window"
+      },
+      {
+        "field": "credit_percent_of_fee",
+        "value": 10,
+        "severity": null,
+        "plan": null,
+        "quote": "the lower of INR 500 or 10% of the shipment fee"
+      },
+      {
+        "field": "credit_max_inr",
+        "value": 500,
+        "severity": null,
+        "plan": null,
+        "quote": "the lower of INR 500 or 10% of the shipment fee"
+      },
+      {
+        "field": "credit_approval_above_inr",
+        "value": 1000,
+        "severity": null,
+        "plan": null,
+        "quote": "Any individual credit above INR 1,000 requires manager approval."
+      }
+    ],
+    "rejected": []
+  },
+  "aa0e851982a050cc57130a02961177e2e815706705e426fa0fd3d0d561286aba": {
+    "doc_id": "05_Northstar_Logistics_Enterprise_Agreement",
+    "model": "openai/gpt-oss-120b",
+    "terms": [
+      {
+        "field": "response_target",
+        "value": "15 minutes, 24x7",
+        "severity": "P1",
+        "plan": null,
+        "quote": "P1: 15 minutes, 24x7"
+      },
+      {
+        "field": "response_target",
+        "value": "1 hour",
+        "severity": "P2",
+        "plan": null,
+        "quote": "P2: 1 hour"
+      },
+      {
+        "field": "response_target",
+        "value": "8 business hours",
+        "severity": "P3",
+        "plan": null,
+        "quote": "P3: 8 business hours"
+      },
+      {
+        "field": "cancellation_fee_waived",
+        "value": true,
+        "severity": null,
+        "plan": null,
+        "quote": "Northstar may cancel any BOOKED shipment before pickup with no cancellation fee, regardless of how long ago the shipment was booked."
+      },
+      {
+        "field": "credit_monthly_cap_inr",
+        "value": 5000,
+        "severity": null,
+        "plan": null,
+        "quote": "Monthly aggregate service credits are capped at INR 5,000."
+      }
+    ],
+    "rejected": []
+  },
+  "fb6443840359beaa4077421f23bfe342e767faca99280364de3de5dddfd23d7e": {
+    "doc_id": "06_LumenWorks_Service_Agreement",
+    "model": "openai/gpt-oss-120b",
+    "terms": [
+      {
+        "field": "response_target",
+        "value": "2 business hours",
+        "severity": "P1",
+        "plan": "Growth",
+        "quote": "P1: 2 business hours"
+      },
+      {
+        "field": "response_target",
+        "value": "4 business hours",
+        "severity": "P2",
+        "plan": "Growth",
+        "quote": "P2: 4 business hours"
+      },
+      {
+        "field": "response_target",
+        "value": "2 business days",
+        "severity": "P3",
+        "plan": "Growth",
+        "quote": "P3: 2 business days"
+      },
+      {
+        "field": "cancellation_fee_waived",
+        "value": false,
+        "severity": null,
+        "plan": null,
+        "quote": "No special cancellation-fee waiver applies."
+      },
+      {
+        "field": "credit_delay_threshold_hours",
+        "value": 4,
+        "severity": null,
+        "plan": null,
+        "quote": "If a pickup is more than 4 hours past the end of the scheduled pickup window, the carrier is at fault, and the customer is not at fault, LumenWorks receives a fixed INR 300 service credit."
+      },
+      {
+        "field": "credit_fixed_inr",
+        "value": 300,
+        "severity": null,
+        "plan": null,
+        "quote": "LumenWorks receives a fixed INR 300 service credit."
+      }
+    ],
+    "rejected": []
+  }
+}

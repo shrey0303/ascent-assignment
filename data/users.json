@@ -1,0 +1,11 @@
+[
+  {"username": "northstar.user", "name": "Northstar Shipping Desk", "role": "customer_user", "account_id": "ACCT-001"},
+  {"username": "northstar.admin", "name": "Northstar Account Admin", "role": "customer_admin", "account_id": "ACCT-001"},
+  {"username": "lumenworks.user", "name": "LumenWorks Shipping Desk", "role": "customer_user", "account_id": "ACCT-002"},
+  {"username": "lumenworks.admin", "name": "LumenWorks Account Admin", "role": "customer_admin", "account_id": "ACCT-002"},
+  {"username": "beacon.user", "name": "Beacon Retail Shipping Desk", "role": "customer_user", "account_id": "ACCT-003"},
+  {"username": "axis.admin", "name": "Axis Labs Account Admin", "role": "customer_admin", "account_id": "ACCT-004"},
+  {"username": "l1.agent", "name": "Support Agent (L1)", "role": "support_l1", "account_id": null},
+  {"username": "l2.agent", "name": "Senior Support Agent (L2)", "role": "support_l2", "account_id": null},
+  {"username": "ops.manager", "name": "Operations Manager", "role": "ops_manager", "account_id": null}
+]
