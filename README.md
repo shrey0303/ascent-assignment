@@ -56,7 +56,9 @@ answers have to agree. If they don't, the app takes the safe option and lists th
 
 ## Hosted version
 
-Link: *(added after deployment)*. Test logins are below.
+Live at **https://parcelpilot-support-q2q8.onrender.com/**. Log in with any test login below (password `demo123`).
+
+It runs on Render's free plan, which sleeps after 15 minutes without visits. If the first page takes about a minute to load, it's waking up.
 
 ## Run it with Docker
 
