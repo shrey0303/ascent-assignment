@@ -11,9 +11,9 @@ follow-up task) until a person presses Confirm.
 
 - **Live app:** https://parcelpilot-support-q2q8.onrender.com/ (test logins below, password `demo123`)
 
-[![Watch the demo video (1:46)](demo/demo_preview.png)](demo/ParcelPilot_demo.mp4)
+[![Watch the demo video (1:46)](demo/demo_preview.png)](https://cdn.jsdelivr.net/gh/shrey0303/ascent_assignment@main/demo/ParcelPilot_demo.mp4)
 
-The demo (1:46, click the image) is recorded on the live app. It shows a customer's own order, a blocked attempt to see
+The demo (1:46, click the image to play it in your browser, or [download it](demo/ParcelPilot_demo.mp4)) is recorded on the live app. It shows a customer's own order, a blocked attempt to see
 another customer's data, a contract overriding the policy, a prompt injection, the outdated-policy trap, Support L1
 being denied contract money terms, an escalation with Confirm (and no duplicate on a second Confirm), the ops
 dashboard and the audit log.
