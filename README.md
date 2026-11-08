@@ -11,16 +11,14 @@ follow-up task) until a person presses Confirm.
 
 - **Live app:** https://parcelpilot-support-q2q8.onrender.com/ (test logins below, password `demo123`)
 
-
-
 https://github.com/user-attachments/assets/46e70ead-aa83-4d6f-8061-961a8e5361c9
 
-
-
-The demo (1:46, click the image to play it in your browser, or [download it](demo/ParcelPilot_demo.mp4)) is recorded on the live app. It shows a customer's own order, a blocked attempt to see
-another customer's data, a contract overriding the policy, a prompt injection, the outdated-policy trap, Support L1
-being denied contract money terms, an escalation with Confirm (and no duplicate on a second Confirm), the ops
-dashboard and the audit log.
+The demo video (5:22, [download it](demo/ParcelPilot_demo.mp4)) covers the architecture, a live demo on the hosted app
+and the key decisions. The live part shows a customer's own order, a blocked attempt to see another customer's data,
+a contract overriding the policy, a prompt injection, a question no document covers, the outdated-policy trap, a
+follow-up escalation with Confirm (and no duplicate on a second Confirm), Support L1 being denied contract money
+terms, an old ticket's wrong answer, a multi-step SLA question, the ops dashboard with a task from an alert, and the
+audit log.
 
 ## What it does
 
