@@ -11,7 +11,11 @@ follow-up task) until a person presses Confirm.
 
 - **Live app:** https://parcelpilot-support-q2q8.onrender.com/ (test logins below, password `demo123`)
 
-[![Watch the demo video (1:46)](demo/demo_preview.png)](https://cdn.jsdelivr.net/gh/shrey0303/ascent_assignment@main/demo/ParcelPilot_demo.mp4)
+
+
+https://github.com/user-attachments/assets/46e70ead-aa83-4d6f-8061-961a8e5361c9
+
+
 
 The demo (1:46, click the image to play it in your browser, or [download it](demo/ParcelPilot_demo.mp4)) is recorded on the live app. It shows a customer's own order, a blocked attempt to see
 another customer's data, a contract overriding the policy, a prompt injection, the outdated-policy trap, Support L1
