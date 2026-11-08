@@ -14,7 +14,7 @@ follow-up task) until a person presses Confirm.
 
 https://github.com/user-attachments/assets/46e70ead-aa83-4d6f-8061-961a8e5361c9
 
-The demo video (5:22, [download it](demo/Ascent_Support_demo.mp4)) covers the architecture, a live demo on the hosted app
+The demo video (5:26, [download it](demo/Ascent_Support_demo.mp4)) covers the architecture, a live demo on the hosted app
 and the key decisions. The live part shows a customer's own order, a blocked attempt to see another customer's data,
 a contract overriding the policy, a prompt injection, a question no document covers, the outdated-policy trap, a
 follow-up escalation with Confirm (and no duplicate on a second Confirm), Support L1 being denied contract money
