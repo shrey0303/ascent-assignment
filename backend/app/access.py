@@ -6,6 +6,7 @@ that these checks accept or refuse. This is what keeps access correct even if th
 fully jailbroken.
 """
 import re
+import unicodedata
 from dataclasses import dataclass
 
 from .data import Dataset
@@ -61,16 +62,22 @@ def visible_account_ids(principal: Principal, dataset: Dataset) -> set[str]:
     return {principal.account_id} if principal.account_id else set()
 
 
+def id_key(value) -> str:
+    """An id or name as compared: models often write ids with a Unicode hyphen (ABC‑123 with U+2011) or odd spacing."""
+    text = unicodedata.normalize("NFKC", str(value))
+    return re.sub(r"\s+", " ", re.sub(r"[‐-―−]", "-", text)).strip().lower()
+
+
 def resolve_account(principal: Principal, dataset: Dataset, ref: str | None) -> dict:
     """Account row for an ID or name the model supplied. Customers only ever get their own."""
     if not ref:
         ref = principal.account_id
         if not ref:
             raise ValueError("Specify which account (ID or name).")
-    needle = ref.strip().lower()
+    needle = id_key(ref)
     match = next(
         (a for a in dataset.rows("accounts")
-         if needle == str(a["account_id"]).lower() or needle in str(a.get("account_name", "")).lower()),
+         if needle == id_key(a["account_id"]) or needle in id_key(a.get("account_name", ""))),
         None,
     )
     if match is None or match["account_id"] not in visible_account_ids(principal, dataset):

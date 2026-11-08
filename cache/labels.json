@@ -1,0 +1,475 @@
+{
+  "998df3353f5ae65a76bd22eeca322a0738808f7849ebc0f6acf594907cf66869": {
+    "kind": "document",
+    "model": "openai/gpt-oss-safeguard-20b",
+    "votes": 5,
+    "doc_type": "policy",
+    "doc_type_quote": "ParcelPilot Support Policy v3",
+    "in_force": true,
+    "in_force_quote": "Status: CURRENT",
+    "meta": {
+      "account_id": null,
+      "version": "v3",
+      "effective": "1 May 2026",
+      "term_start": null,
+      "term_end": null
+    },
+    "commercial": [
+      false,
+      false,
+      false,
+      false,
+      false
+    ],
+    "commercial_quotes": [
+      "",
+      "",
+      "",
+      "",
+      ""
+    ],
+    "tallies": {
+      "doc_type": {
+        "policy": 5
+      },
+      "in_force": {
+        "True": 5
+      },
+      "account_id": {
+        "None": 5
+      },
+      "version": {
+        "v3": 5
+      },
+      "effective": {
+        "1 May 2026": 5
+      },
+      "term_start": {
+        "None": 5
+      },
+      "term_end": {
+        "None": 5
+      }
+    },
+    "undecided": [],
+    "complete": true
+  },
+  "86ac621ad15751e9584bbef69e9af161378ee90346addab5c559660a2c8c2d91": {
+    "kind": "document",
+    "model": "openai/gpt-oss-safeguard-20b",
+    "votes": 5,
+    "doc_type": "policy",
+    "doc_type_quote": "ParcelPilot Support Policy v2",
+    "in_force": false,
+    "in_force_quote": "Status: DEPRECATED - DO NOT USE FOR CURRENT REQUESTS",
+    "meta": {
+      "account_id": null,
+      "version": "v2",
+      "effective": "1 January 2025",
+      "term_start": null,
+      "term_end": null
+    },
+    "commercial": [
+      false,
+      false
+    ],
+    "commercial_quotes": [
+      "",
+      ""
+    ],
+    "tallies": {
+      "doc_type": {
+        "policy": 5
+      },
+      "in_force": {
+        "False": 5
+      },
+      "account_id": {
+        "None": 5
+      },
+      "version": {
+        "v2": 5
+      },
+      "effective": {
+        "1 January 2025": 5
+      },
+      "term_start": {
+        "None": 5
+      },
+      "term_end": {
+        "None": 5
+      }
+    },
+    "undecided": [],
+    "complete": true
+  },
+  "f5da75d55151c692cc718e5979e7c1560a6adda3286c21f8db9081430ca828ae": {
+    "kind": "document",
+    "model": "openai/gpt-oss-safeguard-20b",
+    "votes": 5,
+    "doc_type": "sop",
+    "doc_type_quote": "ParcelPilot Cancellation & Service Credit SOP v4",
+    "in_force": true,
+    "in_force_quote": "Status: CURRENT",
+    "meta": {
+      "account_id": null,
+      "version": "v4",
+      "effective": "15 June 2026",
+      "term_start": null,
+      "term_end": null
+    },
+    "commercial": [
+      false,
+      false,
+      false,
+      false
+    ],
+    "commercial_quotes": [
+      "",
+      "",
+      "",
+      ""
+    ],
+    "tallies": {
+      "doc_type": {
+        "sop": 5
+      },
+      "in_force": {
+        "True": 5
+      },
+      "account_id": {
+        "None": 5
+      },
+      "version": {
+        "v4": 5
+      },
+      "effective": {
+        "15 June 2026": 5
+      },
+      "term_start": {
+        "None": 5
+      },
+      "term_end": {
+        "None": 5
+      }
+    },
+    "undecided": [],
+    "complete": true
+  },
+  "d1806eaeabcfda14434658ed7a369112813445aaa06145f4379ae037a2536fd4": {
+    "kind": "document",
+    "model": "openai/gpt-oss-safeguard-20b",
+    "votes": 5,
+    "doc_type": "product_guide",
+    "doc_type_quote": "ParcelPilot Product Operations Guide",
+    "in_force": true,
+    "in_force_quote": "Status: CURRENT",
+    "meta": {
+      "account_id": null,
+      "version": null,
+      "effective": "14 August 2026",
+      "term_start": null,
+      "term_end": null
+    },
+    "commercial": [
+      false,
+      false,
+      false,
+      false
+    ],
+    "commercial_quotes": [
+      "",
+      "",
+      "",
+      ""
+    ],
+    "tallies": {
+      "doc_type": {
+        "product_guide": 5
+      },
+      "in_force": {
+        "True": 5
+      },
+      "account_id": {
+        "None": 5
+      },
+      "version": {
+        "None": 5
+      },
+      "effective": {
+        "14 August 2026": 4,
+        "None": 1
+      },
+      "term_start": {
+        "None": 5
+      },
+      "term_end": {
+        "None": 5
+      }
+    },
+    "undecided": [],
+    "complete": true
+  },
+  "a639b9ef2d757211e3fb3776641000852a2f6cc52d66b6d976feed163c6bd1f6": {
+    "kind": "document",
+    "model": "openai/gpt-oss-safeguard-20b",
+    "votes": 5,
+    "doc_type": "contract",
+    "doc_type_quote": "ParcelPilot - Northstar Logistics Enterprise Agreement",
+    "in_force": true,
+    "in_force_quote": "",
+    "meta": {
+      "account_id": "ACCT-001",
+      "version": null,
+      "effective": "1 January 2026",
+      "term_start": "1 January 2026",
+      "term_end": "31 December 2026"
+    },
+    "commercial": [
+      false,
+      false,
+      true,
+      true,
+      false
+    ],
+    "commercial_quotes": [
+      "",
+      "",
+      "no cancellation fee",
+      "INR 5,000",
+      ""
+    ],
+    "tallies": {
+      "doc_type": {
+        "contract": 5
+      },
+      "in_force": {
+        "True": 5
+      },
+      "account_id": {
+        "ACCT-001": 5
+      },
+      "version": {
+        "None": 5
+      },
+      "effective": {
+        "1 January 2026": 4,
+        "None": 1
+      },
+      "term_start": {
+        "1 January 2026": 5
+      },
+      "term_end": {
+        "31 December 2026": 5
+      },
+      "commercial: Header": {
+        "False": 5
+      },
+      "commercial: 1. Support terms": {
+        "False": 5
+      },
+      "commercial: 2. Shipment cancellation": {
+        "True": 4,
+        "False": 1
+      },
+      "commercial: 3. Service credits": {
+        "True": 5
+      },
+      "commercial: 4. Account contact": {
+        "False": 5
+      }
+    },
+    "undecided": [],
+    "complete": true
+  },
+  "bdd6bb53b826e8505d772d826dcfe56185fc053a57e14e4b1d9771b361ef58a7": {
+    "kind": "document",
+    "model": "openai/gpt-oss-safeguard-20b",
+    "votes": 5,
+    "doc_type": "contract",
+    "doc_type_quote": "ParcelPilot - LumenWorks Service Agreement",
+    "in_force": true,
+    "in_force_quote": "",
+    "meta": {
+      "account_id": "ACCT-002",
+      "version": null,
+      "effective": null,
+      "term_start": "1 March 2026",
+      "term_end": "28 February 2027"
+    },
+    "commercial": [
+      false,
+      false,
+      true,
+      true
+    ],
+    "commercial_quotes": [
+      "",
+      "",
+      "",
+      "fixed INR 300 service credit"
+    ],
+    "tallies": {
+      "doc_type": {
+        "contract": 5
+      },
+      "in_force": {
+        "True": 5
+      },
+      "account_id": {
+        "ACCT-002": 5
+      },
+      "version": {
+        "None": 5
+      },
+      "effective": {
+        "1 March 2026": 3,
+        "None": 2
+      },
+      "term_start": {
+        "1 March 2026": 5
+      },
+      "term_end": {
+        "28 February 2027": 5
+      },
+      "commercial: Header": {
+        "False": 5
+      },
+      "commercial: 1. Support terms": {
+        "False": 5
+      },
+      "commercial: 2. Cancellation terms": {
+        "True": 3,
+        "False": 2
+      },
+      "commercial: 3. Failed-pickup credits": {
+        "True": 5
+      }
+    },
+    "undecided": [
+      "effective",
+      "commercial: 2. Cancellation terms"
+    ],
+    "complete": true
+  },
+  "d6011cd223d8e523ed18f3f2308f4fd36ea5064908a3ffc411e59c2c21816073": {
+    "kind": "severity",
+    "model": "openai/gpt-oss-safeguard-20b",
+    "votes": 5,
+    "severity": "P1",
+    "quote": "Complete production outage preventing all shipment creation for a customer, confirmed security incident or suspected credential exposure, or another event causing immediate material business risk with no workaround.",
+    "reason": "All users cannot create shipments, a complete production outage for that customer with no workaround available.",
+    "tally": {
+      "P1": 5
+    },
+    "complete": true
+  },
+  "c2881799919ba9e69a7e63aaf7e4da6fd9127a74961f1e56b0fe8e08a9ed89db": {
+    "kind": "severity",
+    "model": "openai/gpt-oss-safeguard-20b",
+    "votes": 5,
+    "severity": "P2",
+    "quote": "Major feature unavailable or materially degraded for a customer, but core operations remain possible or a workaround exists.",
+    "reason": "Bulk upload fails after 70%, but individual shipment creation works as a workaround.",
+    "tally": {
+      "P2": 5
+    },
+    "complete": true
+  },
+  "7402c9f19eff6141d5db12a3e8debc3107ecf291b67c3efd69f12a4bd3ce3159": {
+    "kind": "severity",
+    "model": "openai/gpt-oss-safeguard-20b",
+    "votes": 5,
+    "severity": "P3",
+    "quote": "Minor defect, how-to question, configuration request, or issue with limited operational impact.",
+    "reason": "The ticket is a how‑to question requesting a billing‑contact email change, a configuration request with limited operational impact.",
+    "tally": {
+      "P3": 5
+    },
+    "complete": true
+  },
+  "2a81b82bf86ae89b01439d95eb3651d0ba1a93ec4043097cd51446c507185b05": {
+    "kind": "severity",
+    "model": "openai/gpt-oss-safeguard-20b",
+    "votes": 5,
+    "severity": "P3",
+    "quote": "Minor defect, how-to question, configuration request, or issue with limited operational impact.",
+    "reason": "The status update delay causes a minor defect with limited operational impact.",
+    "tally": {
+      "P3": 5
+    },
+    "complete": true
+  },
+  "77df3c5e92dffca24dcf014fd3dc326a0af993b6447a9f665b98af79d5bda706": {
+    "kind": "severity",
+    "model": "openai/gpt-oss-safeguard-20b",
+    "votes": 5,
+    "severity": "P1",
+    "quote": "Complete production outage preventing all shipment creation for a customer, confirmed security incident or suspected credential exposure, or another event causing immediate material business risk with no workaround.",
+    "reason": "The ticket describes a suspected API key exposure, which is a credential exposure and qualifies as a critical incident per the policy.",
+    "tally": {
+      "P1": 5
+    },
+    "complete": true
+  },
+  "669f272b23bfa17f87d6dac984c5c745ca4c1715e578a05eef2e364cea4fe745": {
+    "kind": "severity",
+    "model": "openai/gpt-oss-safeguard-20b",
+    "votes": 5,
+    "severity": "P3",
+    "quote": "Minor defect, how-to question, configuration request, or issue with limited operational impact.",
+    "reason": "The ticket is a how-to question regarding cancellation timing, which has limited operational impact.",
+    "tally": {
+      "P3": 5
+    },
+    "complete": true
+  },
+  "5ad9d2e47a8b61f7233f8815c723893379bfa75e3db4db64f266484ffe6d963f": {
+    "kind": "severity",
+    "model": "openai/gpt-oss-safeguard-20b",
+    "votes": 5,
+    "severity": "P2",
+    "quote": "Major feature unavailable or materially | degraded for a customer, but core operations | remain possible or a workaround exists.",
+    "reason": "The bulk upload feature is materially degraded, preventing large CSV uploads but still allowing other shipment creation methods.",
+    "tally": {
+      "P2": 5
+    },
+    "complete": true
+  },
+  "394bf1f5677862f420b43e83d75062b5b8a0430a8adee87dac24393d1050166d": {
+    "kind": "severity",
+    "model": "openai/gpt-oss-safeguard-20b",
+    "votes": 5,
+    "severity": "P3",
+    "quote": "Minor defect, how-to question, configuration request, or issue with limited operational impact.",
+    "reason": "The status update issue affects a single order and does not prevent core shipment creation or operation.",
+    "tally": {
+      "P3": 5
+    },
+    "complete": true
+  },
+  "a31b2caee349ef1b4e0b6937c0409fc13642de2e0b1eabee4ce3c4f712f8fcb2": {
+    "kind": "severity",
+    "model": "openai/gpt-oss-safeguard-20b",
+    "votes": 5,
+    "severity": "P2",
+    "quote": "Major feature unavailable or materially | degraded for a customer, but core operations | remain possible or a workaround exists.",
+    "reason": "Bulk upload fails preventing large‑scale shipment creation, but single shipments still work.",
+    "tally": {
+      "P2": 5
+    },
+    "complete": true
+  },
+  "547b79c1d4e9ae8408c099a0540a3c27d8297408847965d876b84077462148fd": {
+    "kind": "severity",
+    "model": "openai/gpt-oss-safeguard-20b",
+    "votes": 5,
+    "severity": "P3",
+    "quote": "- P3 - Normal: Minor defect, how-to question, configuration request, or issue with limited operational impact.",
+    "reason": "The ticket requests a billing‑contact change, a typical configuration query with minimal operational impact.",
+    "tally": {
+      "P3": 5
+    },
+    "complete": true
+  }
+}

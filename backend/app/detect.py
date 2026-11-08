@@ -1,7 +1,7 @@
 """Proactive issue detection for the Ops Manager dashboard. No LLM involved.
 
 Detectors (each alert carries its method, numbers and evidence ids):
-- sla_risk: open P1/P2 tickets breached or due within the horizon (calculator + resolved terms).
+- sla_risk: open high-severity tickets (the policy's two strictest levels) breached or due within the horizon.
 - complaint_spike: Poisson test of tickets in the last 24h against the account's own 30-day baseline.
 - root_cause_cluster: TF-IDF cosine similarity links tickets to each other and to open known issues.
 - unusual_order: rules for missed pickups and cancellation requests after pickup.
@@ -14,6 +14,7 @@ from collections import Counter, defaultdict
 from datetime import timedelta
 
 from .access import Principal
+from .calculator import high_severities
 from .data import get_dataset
 from .docs import get_library, tokens
 from .tools import sla_report
@@ -49,7 +50,7 @@ def _account_names() -> dict[str, str]:
 
 def sla_alerts(principal: Principal) -> list[dict]:
     names, alerts = _account_names(), []
-    for t in sla_report(principal, SLA_HORIZON_HOURS, ["P1", "P2"]):
+    for t in sla_report(principal, SLA_HORIZON_HOURS, high_severities()):
         breached = t["sla_state"] == "breached"
         minutes = abs(t["minutes_until_due"])
         alerts.append(_alert(

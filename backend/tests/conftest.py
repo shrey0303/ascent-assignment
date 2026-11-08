@@ -3,9 +3,11 @@
 TERMS is what a correct LLM extraction of the data pack looks like. test_terms.py checks every quote
 against the real PDFs with the same verifier the app uses, so these fixtures cannot drift from the documents.
 """
+import re
+
 import pytest
 
-from app import config, db, terms
+from app import classify, config, db, terms
 from app.access import Principal
 
 
@@ -55,13 +57,102 @@ TERMS = {
 }
 
 
+# What a correct classifier run gives for the data pack (checked against the PDFs in test_classify.py).
+# doc_id: (doc_type, doc_type_quote, in_force, in_force_quote, {commercial section heading: quote})
+DOC_LABELS = {
+    "01_Support_Policy_v3_CURRENT": ("policy", "ParcelPilot Support Policy v3", True, "Status: CURRENT", {}),
+    "02_Support_Policy_v2_DEPRECATED": ("policy", "ParcelPilot Support Policy v2", False,
+                                       "DEPRECATED - DO NOT USE FOR CURRENT REQUESTS", {}),
+    "03_Cancellation_and_Service_Credit_SOP_v4": ("sop", "Cancellation & Service Credit SOP v4", True, "Status: CURRENT", {}),
+    "04_Product_Operations_Guide_and_Known_Issues": ("product_guide", "ParcelPilot Product Operations Guide", True,
+                                                     "Status: CURRENT", {}),
+    "05_Northstar_Logistics_Enterprise_Agreement": ("contract", "Northstar Logistics Enterprise Agreement", True,
+                                                    "Status: ACTIVE", {
+        "2. Shipment cancellation": "with no cancellation fee",
+        "3. Service credits": "Monthly aggregate service credits are capped at INR 5,000."}),
+    "06_LumenWorks_Service_Agreement": ("contract", "LumenWorks Service Agreement", True, "Status: ACTIVE", {
+        "2. Cancellation terms": "No special cancellation-fee waiver applies.",
+        "3. Failed-pickup credits": "LumenWorks receives a fixed INR 300 service credit."}),
+}
+# ticket number (ids may be renamed by test_hidden_data) -> (severity, policy definition quote)
+SEVERITY_LABELS = {
+    "501": ("P1", "Complete production outage preventing all shipment creation for a customer"),
+    "502": ("P2", "but core operations remain possible or a workaround exists"),
+    "503": ("P3", "how-to question, configuration request"),
+    "504": ("P3", "issue with limited operational impact"),
+    "505": ("P1", "suspected credential exposure"),
+    "450": ("P3", "how-to question, configuration request"),
+    "451": ("P2", "Major feature unavailable or materially"),
+}
+
+
+# doc_id: metadata values exactly as the document writes them (None = not stated)
+DOC_META = {
+    "01_Support_Policy_v3_CURRENT": {"version": "v3", "effective": "1 May 2026"},
+    "02_Support_Policy_v2_DEPRECATED": {"version": "v2", "effective": "1 January 2025"},
+    "03_Cancellation_and_Service_Credit_SOP_v4": {"version": "v4", "effective": "15 June 2026"},
+    "04_Product_Operations_Guide_and_Known_Issues": {"effective": "14 August 2026"},
+    "05_Northstar_Logistics_Enterprise_Agreement": {"account_id": "ACCT-001", "term_start": "1 January 2026",
+                                                    "term_end": "31 December 2026"},
+    "06_LumenWorks_Service_Agreement": {"account_id": "ACCT-002", "term_start": "1 March 2026",
+                                        "term_end": "28 February 2027"},
+}
+
+
+def undecided_labels(sections):
+    """What a classifier whose runs agree on nothing returns."""
+    return {"doc_type": None, "doc_type_quote": "", "in_force": None, "in_force_quote": "",
+            "meta": dict.fromkeys(classify.META_FIELDS), "commercial": [True] * len(sections),
+            "commercial_quotes": [""] * len(sections), "undecided": ["doc_type", "in_force", *classify.META_FIELDS]}
+
+
+def fake_document_labels(doc_id, title, text, sections):
+    if doc_id not in DOC_LABELS:
+        return undecided_labels(sections)
+    doc_type, type_quote, in_force, force_quote, commercial = DOC_LABELS[doc_id]
+    return {"doc_type": doc_type, "doc_type_quote": type_quote, "in_force": in_force, "in_force_quote": force_quote,
+            "meta": {name: DOC_META[doc_id].get(name) for name in classify.META_FIELDS},
+            "commercial": [heading in commercial for heading, _ in sections],
+            "commercial_quotes": [commercial.get(heading, "") for heading, _ in sections], "undecided": []}
+
+
+def fake_ticket_severity(ticket, policy_text):
+    number = re.sub(r"\D", "", str(ticket.get("ticket_id")))
+    severity, quote = SEVERITY_LABELS.get(number, (None, ""))
+    return {"severity": severity, "quote": quote, "reason": "", "tally": {severity: 5} if severity else {}}
+
+
 @pytest.fixture(autouse=True)
 def isolated(monkeypatch, tmp_path):
+    """Throwaway database, fixed terms and labels, and no network: the per-turn checks default to 'the user
+    asked for nothing', 'no injection' and 'every sentence is backed'. Tests that need other answers set them
+    (intent, planted fixtures, or answer_support directly)."""
     monkeypatch.setattr(config, "DB_PATH", tmp_path / "test.db")
     db.get_db.cache_clear()
     monkeypatch.setattr(terms, "get_terms", lambda: TERMS)
+    monkeypatch.setattr(classify, "document_labels", fake_document_labels)
+    monkeypatch.setattr(classify, "ticket_severity", fake_ticket_severity)
+    monkeypatch.setattr(classify, "turn_intent", lambda *args: classify.Intent())
+    monkeypatch.setattr(classify, "injection_score", lambda text: 0.0)
+    monkeypatch.setattr(classify, "answer_support", lambda *args: classify.Support())
     yield
     db.get_db.cache_clear()
+
+
+@pytest.fixture
+def intent(monkeypatch):
+    """Set what the request check finds the user asking for: intent(escalate="please escalate")."""
+    def set_intent(outdated=None, **actions):
+        monkeypatch.setattr(classify, "turn_intent", lambda *args: classify.Intent(actions, outdated or {}))
+    return set_intent
+
+
+@pytest.fixture
+def planted(monkeypatch):
+    """Texts the injection classifier should score as attacks: planted.append(text)."""
+    texts: list[str] = []
+    monkeypatch.setattr(classify, "injection_score", lambda text: 1.0 if any(p in text for p in texts) else 0.0)
+    return texts
 
 
 def principal(role: str, account_id: str | None = None, user_id: str | None = None) -> Principal:

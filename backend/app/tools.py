@@ -2,29 +2,28 @@
 
 Each tool = a JSON schema (what the model sees) + allowed roles + a function whose first argument is
 the authenticated Principal. `run` is the only entry point: it checks the role, calls the tool,
-turns access violations into refusals, applies the commercial-terms restriction, flags suspected
-prompt injection in returned text, and writes every call to the audit trail.
+turns access violations into refusals, applies the commercial-terms restriction, flags returned text the
+prompt-injection classifier scores as an attack, and writes every call to the audit trail.
 """
 import json
 import re
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Callable
 
-from . import access, actions, audit, calculator, config
+from . import access, actions, audit, calculator, classify, config
 from .access import ALL_ROLES, INTERNAL_ROLES, AccessDenied, Principal
 from .data import get_dataset
-from .docs import get_library
+from .docs import get_library, words
 from .terms import resolve
 
-INJECTION = re.compile(
-    r"ignore (all |any )?(the )?(previous|prior|above|earlier) (instructions|rules|messages)"
-    r"|disregard .{0,40}(instructions|rules|policy)|you are now|system prompt|developer mode|jailbreak"
-    r"|reveal .{0,30}(prompt|instructions|other customers?)|override .{0,30}(policy|rules|access)"
-    r"|(as|you are) (an? )?(admin|administrator|ops manager|support l2)\b|new instructions",
-    re.I,
-)
 COMMERCIAL_CALCS = {"calc_cancellation", "calc_pickup_credit"}
+MISSING_WORDS_NOTE = (
+    "No document searched here contains these words of the query. If the question depends on them, the sources "
+    "do not cover it: say so plainly and offer escalation. Do not answer it from other terms or from general "
+    "knowledge."
+)
 RESTRICTED_CALC_MESSAGE = (
     "This result depends on contract commercial terms that your role cannot see. "
     "Hand it to Support L2 or an Ops Manager."
@@ -45,7 +44,11 @@ TOOLS: dict[str, Tool] = {}
 
 def tool(name: str, description: str, properties: dict, required: tuple = (), roles: set[str] = ALL_ROLES):
     def register(fn):
-        schema = {"type": "object", "properties": properties, "required": list(required)}
+        # Optional arguments also accept null: models send null for "not given", and providers that validate tool
+        # calls (Groq) reject the whole call otherwise. run() drops nulls so the function default applies.
+        props = {k: v if k in required or "type" not in v or isinstance(v["type"], list)
+                 else {**v, "type": [v["type"], "null"]} for k, v in properties.items()}
+        schema = {"type": "object", "properties": props, "required": list(required)}
         TOOLS[name] = Tool(name, description, schema, set(roles), fn)
         return fn
     return register
@@ -100,25 +103,33 @@ def _redact_commercial(out: dict) -> None:
 
 
 def _injection_hits(out: dict) -> list[str]:
-    hits = []
-    for d in _walk(out):
-        if isinstance(d, str):
-            match = INJECTION.search(d)
-            if match:
-                hits.append(d[max(0, match.start() - 40): match.end() + 40])
-    return hits
+    """Free-text values the prompt-injection classifier scores as an attack. Ids, dates and codes are skipped."""
+    texts = list(dict.fromkeys(d for d in _walk(out) if isinstance(d, str) and len(d) >= 20 and " " in d))
+    if not texts:
+        return []
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        scores = list(pool.map(classify.injection_score, texts))
+    return [t[:200] for t, s in zip(texts, scores) if s is not None and s >= config.INJECTION_THRESHOLD]
 
 
 def _find_row(principal: Principal, table: str, id_column: str, value: str) -> dict:
     dataset = get_dataset()
-    needle = str(value).strip().lower()
-    row = next((r for r in dataset.rows(table) if str(r.get(id_column, "")).lower() == needle), None)
+    needle = access.id_key(value)
+    row = next((r for r in dataset.rows(table) if access.id_key(r.get(id_column, "")) == needle), None)
     if row is None:
         if not principal.internal:
             raise AccessDenied("That record is not found or not accessible from your login.")
         raise LookupError(f"No {table} record {value!r}.")
     access.check_row(principal, dataset, row)
     return row
+
+
+def _severity_code(value: str) -> str:
+    """A severity code the current support policy defines (codes come from the policy, not a fixed list)."""
+    code, scale = str(value).strip().upper(), calculator.severity_scale()
+    if code not in scale:
+        raise ValueError(f"Unknown severity {value!r}. The current support policy defines: {', '.join(scale)}.")
+    return code
 
 
 def _account_of(row: dict) -> dict | None:
@@ -155,16 +166,27 @@ def authorize_action(principal: Principal, action: str, payload: dict) -> None:
     "search_documents",
     "Search the current support policy, SOP, product guide / known issues and the customer agreement. Returns "
     "sections with source_id, document type, precedence rank and text. Deprecated or superseded documents are "
-    "never returned as usable; they are listed in excluded_sources.",
+    "never returned as usable; they are listed in excluded_sources. A customer agreement is searched only for "
+    "the customer in scope: pass account when the question is about one customer.",
     {"query": {"type": "string", "description": "What to look for"},
+     "account": {"type": "string", "description": "The customer the question is about (id or name), if any. "
+                                                  "Omit for general policy questions."},
      "top_k": {"type": "integer", "minimum": 1, "maximum": 8, "description": "Number of sections (default 4)"}},
     required=("query",),
 )
-def search_documents(principal: Principal, query: str, top_k: int = 4) -> dict:
-    library, names = get_library(), access.staff_names(get_dataset())
+def search_documents(principal: Principal, query: str, top_k: int = 4, account: str | None = None) -> dict:
+    library, dataset = get_library(), get_dataset()
+    names = access.staff_names(dataset)
+    # A contract only applies to its own customer, so it must never answer a general or another customer's question.
+    if account:
+        scope = {access.resolve_account(principal, dataset, account)["account_id"]}  # refuses other customers
+    elif not principal.internal:
+        scope = {principal.account_id}
+    else:
+        scope = _accounts_named(query, dataset)
 
     def visible(doc):
-        return doc.doc_type != "contract" or principal.internal or doc.account_id == principal.account_id
+        return doc.doc_type != "contract" or doc.account_id in scope
 
     results = []
     for score, section in library.search(query, max(1, min(top_k, 8)), lambda d: d.usable and visible(d)):
@@ -181,8 +203,30 @@ def search_documents(principal: Principal, query: str, top_k: int = 4) -> dict:
     for _, section in library.search(query, 3, lambda d: not d.usable and visible(d)):
         doc = library.documents[section.doc_id]
         excluded[doc.doc_id] = {"doc_id": doc.doc_id, "status": doc.status, "reason": doc.status_reason}
-    return {"results": results, "excluded_sources": list(excluded.values()),
-            "precedence_order": config.SOURCE_PRECEDENCE}
+    out = {"results": results, "excluded_sources": list(excluded.values()),
+           "precedence_order": config.SOURCE_PRECEDENCE}
+    # Only text this user can read counts, so the list never hints at another customer's contract or at a
+    # commercial term hidden from this role. Company names are not topics, so they are left out.
+    company_words = set().union(*(words(str(a.get("account_name", ""))) for a in dataset.rows("accounts")))
+    missing = [w for w in library.missing_words(query, lambda d, s: d.usable and visible(d) and not (
+        s.commercial and not principal.can("commercial"))) if w not in company_words]
+    if missing:
+        out["not_in_any_document"] = {"words": missing, "note": MISSING_WORDS_NOTE}
+    if principal.internal and not scope:
+        out["contracts_note"] = ("No customer named, so customer agreements were not searched. "
+                                 "Pass account to include one customer's agreement.")
+    return out
+
+
+def _accounts_named(query: str, dataset) -> set[str]:
+    """Accounts the query names by id or by the first word of the company name."""
+    words = set(re.findall(r"[a-z0-9]+(?:-[a-z0-9]+)*", query.lower()))
+    found = set()
+    for row in dataset.rows("accounts"):
+        first = re.findall(r"[a-z0-9]+", str(row.get("account_name", "")).lower())[:1]
+        if str(row["account_id"]).lower() in words or (first and len(first[0]) >= 3 and first[0] in words):
+            found.add(row["account_id"])
+    return found
 
 
 @tool(
@@ -208,8 +252,8 @@ def query_records(principal: Principal, entity: str, record_id: str | None = Non
         raise ValueError(f"Unknown entity {entity!r}. Available: {sorted(dataset.tables)}")
     rows = dataset.rows(entity)
     if record_id:
-        needle = record_id.strip().lower()
-        rows = [r for r in rows if any(k.endswith("_id") and str(v).lower() == needle for k, v in r.items())]
+        needle = access.id_key(record_id)
+        rows = [r for r in rows if any(k.endswith("_id") and access.id_key(v) == needle for k, v in r.items())]
         for row in rows:
             access.check_row(principal, dataset, row)  # forged id of another account -> refused and audited
     if account:
@@ -233,7 +277,14 @@ def query_records(principal: Principal, entity: str, record_id: str | None = Non
             item["severity"], item["severity_basis"] = calculator.severity_of(row)
             item["escalations"] = [a["id"] for a in escalations if a["payload"].get("ticket_id") == row.get("ticket_id")]
             if row.get("historical_resolution"):
-                item["historical_resolution_authority"] = "historical ticket: context only, lowest precedence, may be wrong"
+                item["historical_resolution_authority"] = (
+                    "historical ticket: context only, lowest precedence, may be wrong. Compare it with "
+                    "current_sources_on_this_topic and follow the current sources where they differ.")
+                # A past answer is never shown alone: the current documents on the same topic come with it, with
+                # the same scoping and access checks as search_documents.
+                topic = f"{row.get('subject', '')} {row.get('historical_resolution', '')}"
+                current = search_documents(principal, topic, top_k=3, account=row.get("account_id"))
+                item["current_sources_on_this_topic"] = current["results"]
         out_rows.append(item)
     return {"entity": entity, "total_matches": len(rows), "sorted_by": time_column, "rows": out_rows,
             "now": dataset.snapshot}
@@ -266,7 +317,9 @@ def calc_cancellation(principal: Principal, order_id: str) -> dict:
 @tool(
     "calc_pickup_credit",
     "Deterministic failed-pickup service-credit check. Give order_id for a real order, or describe a hypothetical "
-    "case with delay_hours / carrier_fault / customer_fault / shipment_fee_inr (leave unknown facts out).",
+    "case with delay_hours / carrier_fault / customer_fault / shipment_fee_inr. Pass every fact the user states, "
+    "including who was at fault (customer_fault=true when the user says the customer caused the delay); leave out "
+    "only facts nobody stated.",
     {"order_id": {"type": "string"},
      "account": {"type": "string", "description": "Account id or name for a hypothetical case (customers: omit)"},
      "delay_hours": {"type": "number", "description": "Hours past the end of the pickup window"},
@@ -328,13 +381,15 @@ def sla_report(principal: Principal, within_hours: float, severities: list[str])
 @tool(
     "sla_watchlist",
     "Internal: open tickets that have breached or will breach their first-response SLA within the next N hours, "
-    "with severity, owner, due time and minutes remaining. 'High severity' means P1 and P2.",
+    "with severity, owner, due time and minutes remaining. Omit severities for high severity (the two strictest "
+    "levels of the current support policy).",
     {"within_hours": {"type": "number", "minimum": 0},
-     "severities": {"type": "array", "items": {"type": "string", "enum": ["P1", "P2", "P3"]}}},
+     "severities": {"type": "array", "items": {"type": "string"},
+                    "description": "Severity codes as the support policy writes them"}},
     roles=INTERNAL_ROLES,
 )
 def sla_watchlist(principal: Principal, within_hours: float = 4, severities: list[str] | None = None) -> dict:
-    severities = severities or ["P1", "P2"]
+    severities = [_severity_code(s) for s in severities] if severities else calculator.high_severities()
     tickets = sla_report(principal, within_hours, severities)
     return {
         "now": get_dataset().snapshot, "within_hours": within_hours, "severities": severities,
@@ -349,11 +404,12 @@ def sla_watchlist(principal: Principal, within_hours: float = 4, severities: lis
     "Prepare an escalation of a ticket or order to the support team. This only creates a preview; the user must "
     "press Confirm before anything happens.",
     {"reason": {"type": "string"}, "ticket_id": {"type": "string"}, "order_id": {"type": "string"},
-     "priority": {"type": "string", "enum": ["P1", "P2", "P3"]}},
+     "priority": {"type": "string", "description": "Severity code as the support policy writes it"}},
     required=("reason",),
 )
 def propose_escalation(principal: Principal, reason: str, ticket_id: str | None = None,
                        order_id: str | None = None, priority: str | None = None) -> dict:
+    priority = _severity_code(priority) if priority else None
     if ticket_id:
         row = _find_row(principal, "tickets", "ticket_id", ticket_id)
         priority = priority or calculator.severity_of(row)[0]
@@ -439,7 +495,7 @@ def run(principal: Principal, name: str, args: dict, conversation_id: str | None
         out, decision = {"error": "access_denied", "message": f"{name} is not available to your role."}, "denied"
     else:
         try:
-            out = _jsonable(tool_def.fn(principal, **(args or {})))
+            out = _jsonable(tool_def.fn(principal, **{k: v for k, v in (args or {}).items() if v is not None}))
         except AccessDenied as exc:
             out, decision = {"error": "access_denied", "message": str(exc)}, "denied"
         except (TypeError, ValueError, LookupError) as exc:

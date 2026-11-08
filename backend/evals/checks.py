@@ -18,7 +18,7 @@ from app.docs import Library
 
 CASES_FILE = Path(__file__).resolve().parent / "cases.json"
 CATEGORIES = ["normal", "multi_step", "contract_override", "deprecated_trap", "wrong_historical",
-              "cross_account", "injection", "actions"]
+              "cross_account", "injection", "actions", "abstention"]  # abstention: added 8 Nov (audit)
 EXPECT_KEYS = {"tools_any", "tools_all", "tools_none", "answer_all", "answer_none", "answer_none_unless_flagged",
                "confidence_in", "conflict_terms", "preview", "no_preview", "no_preview_of"}
 
@@ -53,8 +53,10 @@ PENDING = re.compile(r"preview|press|click|button|to confirm|you confirm|draft|o
 
 
 def normalize(text: str) -> str:
-    """Unicode spaces and dashes models emit (nbsp, narrow nbsp, en dash) become plain ones."""
+    """Unicode spaces, dashes and curly quotes models emit become plain ones; markdown emphasis is dropped."""
     text = unicodedata.normalize("NFKC", text or "")
+    text = re.sub(r"[‘’‚‛]", "'", re.sub(r"[“”„‟]", '"', text))
+    text = re.sub(r"\*+|`+", "", text)  # "will **not** be charged" reads as "will not be charged"
     return re.sub(r"[‐-―−]", "-", text)
 
 

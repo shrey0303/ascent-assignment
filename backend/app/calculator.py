@@ -6,14 +6,17 @@ The order-state rules (DRAFT / BOOKED / PICKED_UP / DELIVERED) follow the SOP's 
 """
 from datetime import datetime
 
-from . import config
+from . import classify, config
 from .business_hours import CALENDAR_TEXT, business_minutes_between, due_at, parse_target
+from .docs import get_library
 
 CLOSED_STATUSES = {"closed", "resolved", "solved"}
 CANCEL_KEYS = ("cancellation_free_window_minutes", "cancellation_fee_inr", "cancellation_fee_waived")
 CREDIT_KEYS = ("credit_delay_threshold_hours", "credit_fixed_inr", "credit_percent_of_fee", "credit_max_inr",
                "credit_approval_above_inr", "credit_monthly_cap_inr")
 SOP_NO_PROMISE = "SOP: do not promise a credit when carrier fault, pickup timing or customer fault is unknown."
+CREDIT_RULE = ("A credit is due only when the delay is over the threshold, the carrier is at fault and the customer is "
+               "NOT at fault. If the customer caused the delay, no credit is due.")
 
 
 def _value(terms: dict, key: str):
@@ -40,18 +43,50 @@ def _flag(value) -> bool | None:
     return None if value is None else bool(value)
 
 
-def severity_of(ticket: dict) -> tuple[str, str]:
-    """Ticket severity and how it was decided. An explicit severity/priority column wins (A-06)."""
+def _policies() -> list:
+    return [d for d in get_library().documents.values() if d.usable and d.doc_type == "policy"]
+
+
+def severity_scale() -> list[str]:
+    """Severity codes defined by the current support policy, strictest first (read from the PDF, not fixed)."""
+    return classify.severity_codes("\n".join(d.text for d in _policies()))
+
+
+def high_severities() -> list[str]:
+    """'High severity' = the two strictest levels of the current policy (A-06; P1 and P2 in the data pack)."""
+    return severity_scale()[:2]
+
+
+def severity_of(ticket: dict) -> tuple[str | None, str]:
+    """Ticket severity and how it was decided (A-06). An explicit severity/priority column wins. Otherwise the
+    classifier applies the current support policy's severity definitions, quoting the one it used. If its runs
+    do not agree, the ticket is handled as the strictest code they chose (or the strictest code of all) and
+    marked NEEDS REVIEW, so a person decides the close calls."""
+    policies = _policies()
+    policy_text = "\n\n".join(f"{d.title}\n{d.text}" for d in policies)
+    codes = classify.severity_codes(policy_text)
+    if not codes:
+        return None, "NEEDS REVIEW: no current support policy defines severity levels"
     for column in ("severity", "priority"):
-        value = str(ticket.get(column) or "").upper()
-        if value in ("P1", "P2", "P3"):
+        value = str(ticket.get(column) or "").strip().upper()
+        if value in codes:
             return value, f"from the ticket's {column} field"
-    text = f"{ticket.get('subject') or ''} {ticket.get('description') or ''}".lower()
-    for severity, label, words in config.SEVERITY_RULES:
-        hit = next((w for w in words if w in text), None)
-        if hit:
-            return severity, f"derived from Support Policy definitions: {label} (matched '{hit}')"
-    return config.DEFAULT_SEVERITY[0], f"derived from Support Policy definitions: {config.DEFAULT_SEVERITY[1]}"
+    text = f"{ticket.get('subject') or ''}\n{ticket.get('description') or ''}"
+    score = classify.injection_score(text)
+    if score is not None and score >= config.INJECTION_THRESHOLD:  # text that gives orders could steer the label
+        return codes[0], (f"NEEDS REVIEW: the ticket text contains instructions, so its severity is not decided "
+                          f"automatically; handled as {codes[0]} (the strictest) until a person reviews it")
+    label = classify.ticket_severity(ticket, policy_text)
+    if label["severity"]:
+        source = " / ".join(d.title for d in policies)
+        return label["severity"], f"{source} definition: \"{label['quote']}\". {label['reason']}".strip()
+    voted = [c for c in codes if c in (label.get("tally") or {})]
+    if voted:
+        split = ", ".join(f"{c} x{label['tally'][c]}" for c in voted)
+        return voted[0], (f"NEEDS REVIEW: the classifier runs did not agree ({split}), so it is handled as "
+                          f"{voted[0]}, the stricter reading, until a person reviews it")
+    return codes[0], (f"NEEDS REVIEW: the severity could not be decided from the support policy definitions, "
+                      f"so it is handled as {codes[0]} (the strictest) until a person reviews it")
 
 
 def cancellation(order: dict, terms: dict, now: datetime) -> dict:
@@ -165,7 +200,8 @@ def pickup_credit(terms: dict, now: datetime, order: dict | None = None, delay_m
 
     if missing:
         return {**out, "outcome": "cannot_determine", "reason": f"Unknown: {', '.join(missing)}. {SOP_NO_PROMISE}",
-                "verdict": f"NOT CONFIRMED. Do not tell the user they are eligible. First confirm: {', '.join(missing)}."}
+                "verdict": f"NOT CONFIRMED. Do not tell the user they are eligible. First confirm: {', '.join(missing)}.",
+                "rule": CREDIT_RULE}
     if not verified:
         return {**out, "outcome": "eligible_if_verified",
                 "reason": f"Eligible only if the stated facts are confirmed. {SOP_NO_PROMISE}",

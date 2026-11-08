@@ -11,7 +11,7 @@ from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from . import actions, agent, audit, auth, config, detect, terms, tools
+from . import actions, agent, audit, auth, calculator, config, detect, terms, tools
 from .access import AccessDenied, Principal
 from .data import get_dataset
 from .db import get_db
@@ -23,7 +23,8 @@ FRONTEND_DIST = config.ROOT / "frontend" / "dist"
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
     config.check_production_secrets()  # refuse to serve with a public signing key
-    get_dataset(), get_library(), terms.get_terms()  # load and verify everything once at startup
+    get_dataset(), get_library(), terms.get_terms()  # load, label and verify everything once at startup
+    labels_needing_review()  # also labels every ticket's severity, so the first chat does not wait for it
     yield
 
 
@@ -69,11 +70,22 @@ def _me(principal: Principal) -> dict:
             "account_id": principal.account_id, "internal": principal.internal}
 
 
+def labels_needing_review() -> list[str]:
+    """Classifier labels that were not decided (each is handled fail-closed until a person reviews it)."""
+    out = [f"{d.doc_id}: {item}" for d in get_library().documents.values() for item in d.labels.get("undecided", [])]
+    for ticket in get_dataset().rows("tickets"):
+        severity, basis = calculator.severity_of(ticket)
+        if basis.startswith("NEEDS REVIEW"):
+            out.append(f"{ticket.get('ticket_id')}: severity ({basis})")
+    return out
+
+
 @app.get("/api/health")
 def health() -> dict:
     dataset = get_dataset()
     return {"status": "ok", "snapshot": dataset.snapshot.isoformat(), "model": config.LLM_MODEL,
-            "documents": len(get_library().documents), "terms_documents": len(terms.get_terms())}
+            "classifier_model": config.CLASSIFIER_MODEL, "documents": len(get_library().documents),
+            "terms_documents": len(terms.get_terms()), "labels_needing_review": labels_needing_review()}
 
 
 @app.get("/api/test-logins")

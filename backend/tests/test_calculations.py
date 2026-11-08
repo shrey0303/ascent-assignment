@@ -85,11 +85,15 @@ def test_sla_watchlist_lists_breaches_with_owner(users):
     assert all(t["assigned_to"] for t in out["tickets"])
 
 
-def test_severity_ignores_how_to_and_sla_wording():
+def test_severity_comes_from_policy_definitions_and_fails_closed(monkeypatch):
+    from app import classify
     from app.calculator import severity_of
-    for text in ("How do I reset my password?", "Will this ticket breach SLA?", "How do I rotate API credentials?"):
-        assert severity_of({"subject": text})[0] == "P3", text
-    assert severity_of({"subject": "Possible API key exposure"})[0] == "P1"
+    severity, basis = severity_of({"ticket_id": "TKT-505", "subject": "Possible API key exposure"})
+    assert severity == "P1" and "suspected credential exposure" in basis  # the definition used is quoted
+    assert severity_of({"ticket_id": "X", "severity": "p2"}) == ("P2", "from the ticket's severity field")
+    monkeypatch.setattr(classify, "ticket_severity", lambda *a: {"severity": None, "quote": "", "reason": ""})
+    severity, basis = severity_of({"ticket_id": "X-1", "subject": "Something odd"})
+    assert severity == "P1" and basis.startswith("NEEDS REVIEW")  # undecided: strictest until a person looks
 
 
 def test_two_workbooks_refuse_to_load(tmp_path):

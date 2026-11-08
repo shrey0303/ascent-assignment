@@ -7,7 +7,7 @@ from app.terms import check_terms, resolve, verify
 from tests.conftest import TERMS
 
 
-def test_document_status_comes_from_headers():
+def test_document_type_and_status_come_from_labels_and_header_fields():
     docs = get_library().documents
     assert docs["02_Support_Policy_v2_DEPRECATED"].status == "deprecated"
     assert docs["01_Support_Policy_v3_CURRENT"].usable

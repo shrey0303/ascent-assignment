@@ -2,6 +2,7 @@
 conversations and LLM usage. The workbook itself is read-only input."""
 import sqlite3
 import threading
+from datetime import datetime, timezone
 from functools import lru_cache
 from pathlib import Path
 
@@ -54,3 +55,13 @@ class Database:
 @lru_cache(maxsize=1)
 def get_db() -> Database:
     return Database(config.DB_PATH)
+
+
+def record_usage(purpose: str, result) -> None:
+    """One LLM call for the spend report. purpose: a conversation id, or what the call was for."""
+    get_db().execute(
+        "INSERT INTO llm_usage (ts, conversation_id, model, input_tokens, output_tokens, cost_usd, latency_ms)"
+        " VALUES (?, ?, ?, ?, ?, ?, ?)",
+        (datetime.now(timezone.utc).isoformat(timespec="seconds"), purpose, result.model,
+         result.input_tokens, result.output_tokens, result.cost_usd, result.latency_ms),
+    )

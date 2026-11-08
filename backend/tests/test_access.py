@@ -87,3 +87,16 @@ def test_every_tool_call_is_audited(users):
     tools.run(users["lumen_user"], "query_records", {"entity": "orders", "account": "Northstar"})
     entry = tools.run(users["ops"], "audit_lookup", {"decision": "denied"})["entries"][0]
     assert entry["user_id"] == users["lumen_user"].user_id and entry["name"] == "query_records"
+
+
+def test_ids_with_unicode_hyphens_are_found(users):
+    """Models often write ids with a non-breaking hyphen (U+2011); the lookup must still find the record, and
+    access checks still apply to it."""
+    from app.data import get_dataset
+    ticket = get_dataset().rows("tickets")[0]["ticket_id"]
+    odd = ticket.replace("-", "\u2011")
+    assert odd != ticket
+    out = tools.run(users["l2"], "calc_ticket_sla", {"ticket_id": odd})
+    assert out.get("ticket_id") == ticket
+    rows = tools.run(users["l2"], "query_records", {"entity": "tickets", "record_id": odd})["rows"]
+    assert [r["ticket_id"] for r in rows] == [ticket]

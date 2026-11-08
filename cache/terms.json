@@ -1,5 +1,5 @@
 {
-  "c1f928be229e3a2ca786255073e2e9d718a3426847e7748e99af2d7ab05a3990": {
+  "5301d6b217087c9e51e362a9d95b7bb1ac95eccbb5d3b103e8f8f535c80a09c7": {
     "doc_id": "01_Support_Policy_v3_CURRENT",
     "model": "openai/gpt-oss-120b",
     "terms": [
@@ -69,7 +69,7 @@
     ],
     "rejected": []
   },
-  "b4adc71ce5a34578b2ccbe06717be5619b6a93eb84737a2d6dfec166243fad57": {
+  "e848a44636ddc997f6ebd32fef8e591063557e4e1e4a862ded6b0cb38cfb2cbf": {
     "doc_id": "03_Cancellation_and_Service_Credit_SOP_v4",
     "model": "openai/gpt-oss-120b",
     "terms": [
@@ -118,7 +118,7 @@
     ],
     "rejected": []
   },
-  "aa0e851982a050cc57130a02961177e2e815706705e426fa0fd3d0d561286aba": {
+  "6e5bf88c1e2697ca985fe3290bc2274e7f2df1374c44c9c644b4f2215f60868d": {
     "doc_id": "05_Northstar_Logistics_Enterprise_Agreement",
     "model": "openai/gpt-oss-120b",
     "terms": [
@@ -160,7 +160,7 @@
     ],
     "rejected": []
   },
-  "fb6443840359beaa4077421f23bfe342e767faca99280364de3de5dddfd23d7e": {
+  "7188a9027c670e726bf086e41573a647c2d3cbbe248ea2b0975acd4758df66c8": {
     "doc_id": "06_LumenWorks_Service_Agreement",
     "model": "openai/gpt-oss-120b",
     "terms": [
@@ -169,21 +169,21 @@
         "value": "2 business hours",
         "severity": "P1",
         "plan": "Growth",
-        "quote": "P1: 2 business hours"
+        "quote": "- P1: 2 business hours"
       },
       {
         "field": "response_target",
         "value": "4 business hours",
         "severity": "P2",
         "plan": "Growth",
-        "quote": "P2: 4 business hours"
+        "quote": "- P2: 4 business hours"
       },
       {
         "field": "response_target",
         "value": "2 business days",
         "severity": "P3",
         "plan": "Growth",
-        "quote": "P3: 2 business days"
+        "quote": "- P3: 2 business days"
       },
       {
         "field": "cancellation_fee_waived",
@@ -197,7 +197,7 @@
         "value": 4,
         "severity": null,
         "plan": null,
-        "quote": "If a pickup is more than 4 hours past the end of the scheduled pickup window, the carrier is at fault, and the customer is not at fault, LumenWorks receives a fixed INR 300 service credit."
+        "quote": "If a pickup is more than 4 hours past the end of the scheduled pickup window"
       },
       {
         "field": "credit_fixed_inr",

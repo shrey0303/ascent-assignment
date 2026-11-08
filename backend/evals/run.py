@@ -29,7 +29,7 @@ from app import auth, config, db, tools  # noqa: E402
 from app.access import Principal  # noqa: E402
 from app.data import get_dataset  # noqa: E402
 from app.docs import get_library  # noqa: E402
-from app.main import app  # noqa: E402
+from app.main import app, labels_needing_review  # noqa: E402
 from evals import checks  # noqa: E402
 
 HERE = Path(__file__).resolve().parent
@@ -151,8 +151,12 @@ def run_case(client: TestClient, case: dict, attempt: int) -> dict:
             usage = db.get_db().query("SELECT * FROM llm_usage WHERE id > ?", (last_usage,))
             last_usage = max([u["id"] for u in usage], default=last_usage)
             conversation_id = next((e["conversation_id"] for e in events if e.get("type") == "start"), conversation_id)
+            agent_calls = [u for u in usage if str(u["conversation_id"]).startswith("conv-")]
             turns.append({"message": message, "events": events, "answer": next((e for e in events if e.get("type") == "answer"), None),
-                          "wall_ms": wall_ms, "model_ms": sum(u["latency_ms"] for u in usage), "llm_calls": len(usage),
+                          # model time = the agent's own calls; checks (request check, scans) run alongside them
+                          "wall_ms": wall_ms, "model_ms": sum(u["latency_ms"] for u in agent_calls), "llm_calls": len(usage),
+                          "check_calls": len(usage) - len(agent_calls),
+                          "cost_by_model": {m: sum(u["cost_usd"] for u in usage if u["model"] == m) for m in {u["model"] for u in usage}},
                           "input_tokens": sum(u["input_tokens"] for u in usage), "output_tokens": sum(u["output_tokens"] for u in usage),
                           "cost_usd": sum(u["cost_usd"] for u in usage),
                           "actions_before": before, "actions_after": _count_actions()})
@@ -179,7 +183,8 @@ def _compact(turn: dict) -> dict:
             "previews": [e.get("payload") for e in turn["events"] if e.get("type") == "action_preview"],
             "errors": [e.get("message") for e in turn["events"] if e.get("type") == "error"],
             "latency_class": latency_class(turn["answer"]),
-            **{k: turn[k] for k in ("wall_ms", "model_ms", "llm_calls", "input_tokens", "output_tokens", "cost_usd")}}
+            **{k: turn[k] for k in ("wall_ms", "model_ms", "llm_calls", "check_calls", "cost_by_model", "input_tokens",
+                                    "output_tokens", "cost_usd")}}
 
 
 def summarize(results: list[dict]) -> dict:
@@ -198,9 +203,15 @@ def summarize(results: list[dict]) -> dict:
                             "median_model_ms": int(statistics.median(t["model_ms"] for t in rows)),
                             "target_ms": LATENCY_TARGET_MS.get(cls)}
     cost = sum(t["cost_usd"] for t in turns)
+    cost_by_model = {}
+    for turn in turns:
+        for model, usd in turn["cost_by_model"].items():
+            cost_by_model[model] = round(cost_by_model.get(model, 0) + usd, 6)
     return {
-        "model": config.LLM_MODEL, "base_url": config.LLM_BASE_URL,
+        "model": config.LLM_MODEL, "classifier_model": config.CLASSIFIER_MODEL, "base_url": config.LLM_BASE_URL,
         "price_per_m": {"input": config.LLM_PRICE_IN_PER_M, "output": config.LLM_PRICE_OUT_PER_M},
+        "cost_by_model": cost_by_model, "check_calls": sum(t["check_calls"] for t in turns),
+        "labels_needing_review": labels_needing_review(),
         "cases": len(results), "passed": sum(r["passed"] for r in results),
         "critical_failures": sorted({f"{r['id']}:{c}" for r in results for c in r["critical_failures"]}),
         "by_category": by_category, "latency": latency,
@@ -214,24 +225,28 @@ def summarize(results: list[dict]) -> dict:
 
 def markdown(summary: dict, results: list[dict], started: str) -> str:
     pct = lambda n, d: f"{100 * n / d:.0f}%" if d else "-"  # noqa: E731
+    review = summary["labels_needing_review"]
     lines = [f"# Evaluation run {started}", "",
-             f"Model `{summary['model']}` via `{summary['base_url']}`. "
+             f"Model `{summary['model']}` via `{summary['base_url']}`, classifier `{summary['classifier_model']}`. "
+             f"Labels needing review: {'; '.join(review) if review else 'none'}. "
              f"**{summary['passed']}/{summary['cases']} cases passed ({pct(summary['passed'], summary['cases'])}).** "
              f"Critical failures: {', '.join(summary['critical_failures']) or 'none'}.", "",
              "| Category | Cases | Passed | Pass rate |", "|---|---|---|---|"]
     for category, row in summary["by_category"].items():
         lines.append(f"| {category} | {row['cases']} | {row['passed']} | {pct(row['passed'], row['cases'])} |")
     lines += ["", "## Latency (per chat turn)", "",
-              "Wall = what the user waits, including provider rate-limit waits. Model = time inside successful LLM calls.", "",
+              "Wall = what the user waits, including provider rate-limit waits. Model = time inside the agent's successful "
+              "LLM calls (the request check and injection scans run alongside and are not added).", "",
               "| Turn type | Turns | Median wall | Median model | Target |", "|---|---|---|---|---|"]
     for cls, row in summary["latency"].items():
         target = f"< {row['target_ms'] / 1000:.0f} s" if row["target_ms"] else "-"
         lines.append(f"| {cls} | {row['turns']} | {row['median_wall_ms'] / 1000:.1f} s | {row['median_model_ms'] / 1000:.1f} s | {target} |")
     lines += ["", "## Cost", "",
-              f"{summary['llm_calls']} LLM calls, {summary['input_tokens']:,} input and {summary['output_tokens']:,} output tokens "
-              f"at USD {summary['price_per_m']['input']} / {summary['price_per_m']['output']} per 1M: "
-              f"**USD {summary['cost_usd']:.4f} total, USD {summary['cost_per_conversation_usd']:.5f} per conversation** "
-              f"(one case = one conversation).", "",
+              f"{summary['llm_calls']} LLM calls ({summary['check_calls']} of them request checks and injection scans), "
+              f"{summary['input_tokens']:,} input and {summary['output_tokens']:,} output tokens, each model at its own "
+              f"price: **USD {summary['cost_usd']:.4f} total, USD {summary['cost_per_conversation_usd']:.5f} per "
+              f"conversation** (one case = one conversation). By model: "
+              + ", ".join(f"`{m}` USD {usd:.4f}" for m, usd in summary["cost_by_model"].items()) + ".", "",
               f"Answers where an unsupported citation was removed before display: {summary['answers_with_removed_citations']}. "
               f"Cases re-run once because the LLM was unavailable: {summary['infra_retries']}.", "", "## Failures", ""]
     failed = [r for r in results if not r["passed"]]
@@ -251,10 +266,11 @@ def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description="Run the agent evaluation suite.")
     parser.add_argument("--only", nargs="*", help="categories or case ids to run")
     parser.add_argument("--pause", type=float, default=0, help="seconds to wait between cases (provider rate limits)")
+    parser.add_argument("--cases", type=Path, help="case file to run (default: evals/cases.json)")
     args = parser.parse_args(argv)
     sys.stdout.reconfigure(encoding="utf-8")  # answers contain characters the Windows console code page lacks
 
-    cases = checks.load_cases()
+    cases = checks.load_cases(args.cases) if args.cases else checks.load_cases()
     if args.only:
         cases = [c for c in cases if c["category"] in args.only or c["id"] in args.only]
     if not cases:
@@ -266,7 +282,8 @@ def main(argv=None) -> int:
     started = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
     RESULTS_DIR.mkdir(exist_ok=True)
     stem = RESULTS_DIR / (datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S") + "_"
-                          + re.sub(r"[^A-Za-z0-9]+", "-", config.LLM_MODEL))
+                          + re.sub(r"[^A-Za-z0-9]+", "-", config.LLM_MODEL)
+                          + (f"_{args.cases.stem}" if args.cases else ""))
 
     def save(results: list[dict], note: str = "") -> tuple[dict, str]:
         """Written after every case, so a stopped run keeps what it finished."""

@@ -1,0 +1,17 @@
+# One command: docker compose up --build   then open http://localhost:8000
+# Keys and settings come from .env (copy .env.example first). .env is never copied into the image.
+services:
+  app:
+    build: .
+    image: parcelpilot-support
+    env_file: .env
+    environment:
+      PORT: "8000"
+    ports:
+      - "${HOST_PORT:-8000}:8000"
+    volumes:
+      - app-data:/app/var   # database (conversations, confirmations, audit) survives restarts
+    restart: unless-stopped
+
+volumes:
+  app-data:
