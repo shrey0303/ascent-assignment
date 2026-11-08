@@ -49,7 +49,7 @@ export default function App() {
     <div className="app">
       <header className="topbar">
         <div className="brand">
-          ParcelPilot <span>{user.internal ? "Internal Support" : "Customer Support"}</span>
+          Ascent <span>{user.internal ? "Internal Support" : "Customer Support"}</span>
         </div>
         <nav>
           {viewsFor(user).map((v) => (

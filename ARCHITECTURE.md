@@ -1,6 +1,7 @@
 # Architecture note
 
-ParcelPilot support assistant, Ascent AI Engineer assessment, Assignment 2.
+Ascent support assistant, Ascent AI Engineer assessment, Assignment 2. (The data pack's documents call the
+platform ParcelPilot.)
 
 ## 1. The idea
 

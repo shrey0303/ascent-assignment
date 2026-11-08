@@ -37,7 +37,7 @@ export default function Login({ onLogin }) {
   return (
     <div className="login">
       <form className="card login-form" onSubmit={submit}>
-        <h1>ParcelPilot Support</h1>
+        <h1>Ascent Support</h1>
         <p className="muted">Sign in with a test login. All test logins share the demo password.</p>
         <label>
           Username
