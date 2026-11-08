@@ -10,10 +10,13 @@ fee and credit, and picks which document wins when two disagree. Nothing actuall
 follow-up task) until a person presses Confirm.
 
 - **Live app:** https://parcelpilot-support-q2q8.onrender.com/ (test logins below, password `demo123`)
-- **Demo video (1:46):** [demo/ParcelPilot_demo.mp4](demo/ParcelPilot_demo.mp4). It's recorded on the live app and
-  shows a customer's own order, a blocked attempt to see another customer's data, a contract overriding the policy, a
-  prompt injection, the outdated-policy trap, Support L1 being denied contract money terms, an escalation with
-  Confirm (and no duplicate on a second Confirm), the ops dashboard and the audit log.
+
+[![Watch the demo video (1:46)](demo/demo_preview.png)](demo/ParcelPilot_demo.mp4)
+
+The demo (1:46, click the image) is recorded on the live app. It shows a customer's own order, a blocked attempt to see
+another customer's data, a contract overriding the policy, a prompt injection, the outdated-policy trap, Support L1
+being denied contract money terms, an escalation with Confirm (and no duplicate on a second Confirm), the ops
+dashboard and the audit log.
 
 ## What it does
 
