@@ -126,10 +126,12 @@ confidence and wording.
 |---|---|---|
 | Main set (77 cases, the one I tuned against) | 74 (96%) | none |
 | Reworded set (22 cases, run once at the end) | 21 (95%) | none |
-| Unseen data: new ids, names, records and a weekday clock (22 cases, run once) | 21 (95%) | none |
+| Unseen data: new ids, names, records and a weekday clock (50 cases, each run once) | 48 (96%) | none |
 
-Five of the 112 cases failed. Two are behaviour I chose not to patch: the model misread who was at fault once, and
-it once asked before showing a preview. The other three are the phrase checks missing correct answers. The labelling
+Six of the 149 cases failed, and none was a critical failure. Three are real misses I chose not to patch: the model
+misread who was at fault once, it once asked before showing a preview, and once it escalated instead of checking an
+old ticket. The other three are phrase checks missing correct answers. Taken together, the likely true pass rate is
+91% to 98%. The labelling
 model scores 118 of 120 against hand labels, and both misses fail safe. Details and the per-group tables are in
 [EVALUATION.md](EVALUATION.md).
 
@@ -144,7 +146,7 @@ model scores 118 of 120 against hand labels, and both misses fail safe. Details 
 
 The small model is cheaper but slips more often on contract overrides, citations and the calculator's inputs. Safety
 was the same with both, because it doesn't depend on the model. Total spend for all the submitted runs was
-USD 0.21 ([SPEND.md](SPEND.md)).
+USD 0.24 ([SPEND.md](SPEND.md)).
 
 The models run through OpenRouter on Groq's servers. Prompt Guard 2 is only on Groq, so it has its own key.
 Switching provider or model is a change in `.env`, not in code.
