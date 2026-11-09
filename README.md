@@ -10,9 +10,13 @@ The AI writes the replies, but code makes the decisions that matter. Code decide
 fee and credit, and picks which document wins when two disagree. Nothing actually happens (an escalation, a
 follow-up task) until a person presses Confirm.
 
-- **Live app:** https://parcelpilot-support-q2q8.onrender.com/ (test logins below, password `demo123`)
+- **Live app:** https://ascent-support.onrender.com (test logins below, password `demo123`)
 
-https://github.com/user-attachments/assets/46e70ead-aa83-4d6f-8061-961a8e5361c9
+
+
+https://github.com/user-attachments/assets/a3a08efb-4ba8-479c-8be8-a2a365d84d21
+
+
 
 The demo video (5:26, [download it](demo/Ascent_Support_demo.mp4)) covers the architecture, a live demo on the hosted app
 and the key decisions. The live part shows a customer's own order, a blocked attempt to see another customer's data,
