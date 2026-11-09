@@ -3,7 +3,7 @@
 services:
   app:
     build: .
-    image: parcelpilot-support
+    image: ascent-support
     env_file: .env
     environment:
       PORT: "8000"

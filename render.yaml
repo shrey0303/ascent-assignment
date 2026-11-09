@@ -2,7 +2,7 @@
 # The two API keys are asked for when the blueprint is created (sync: false); they are never stored in git.
 services:
   - type: web
-    name: parcelpilot-support
+    name: ascent-support
     runtime: docker
     plan: free
     region: singapore
