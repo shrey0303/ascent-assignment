@@ -112,8 +112,8 @@ is read. Planted text can't unlock an action even when the scan misses it, and i
 blunt attacks scored 0.999 but a politely worded planted instruction scored only 0.016. That's why the scan is a
 warning signal, not the lock.
 
-147 automated tests back this up. They include forged tool arguments, one user opening another user's chat, edited
-Confirm tokens, and a scripted model that has been completely tricked. None of them leak data or run an action.
+Tests back this up. They call the tools directly with forged arguments, open another user's chat, edit Confirm tokens
+and use a scripted model that has been completely tricked. None of them leak data or run an action.
 
 ## 7. Evaluation
 

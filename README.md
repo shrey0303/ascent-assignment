@@ -159,10 +159,9 @@ cd backend
 .venv\Scripts\python -m pytest -q
 ```
 
-There are 147 tests, and none of them call an AI model or need a key. The model's answers are scripted, so the tests
-check the code around it. Some play a model that's been completely tricked: it asks for other customers' data, tries
-to confirm its own actions and plants fake prices. The tests check that none of it gets through. Others rename every
-id and customer in the data and check that the answers follow the new data.
+The tests call the tools directly with forged arguments, as the brief asks, and check that access still holds: a
+customer never gets another customer's data and nothing runs without Confirm, even when the model is completely
+tricked. None of them call an AI model or need a key.
 
 The web app has its own small tests: `npm test` in `frontend/`.
 
