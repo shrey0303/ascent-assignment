@@ -1,6 +1,6 @@
 # Evaluation report
 
-The runs are from 8 and 9 November 2026. The raw reports, with every answer, timing and cost, are in
+The raw reports, with every answer, timing and cost, are in
 `backend/evals/results/`.
 
 ## How it's tested
@@ -35,8 +35,8 @@ I ran three sets:
 3. **Unseen-data set, 50 cases.** Also written after the code was finished, and each case was run once. They run on
    a rewritten workbook (`evals/unseen_pack.py`): every order and ticket id is new, support staff have new names,
    "now" moves from a Sunday to a Wednesday, and there's a new customer account with new orders and tickets. This is
-   the closest thing I have to the hidden tests the brief mentions. The first 22 cases ran on 8 November; I added 28
-   more on 9 November so every group has at least four cases, and ran only the new ones.
+   the closest thing I have to the hidden tests the brief mentions. I wrote 22 cases first, then added 28 more so every
+   group has at least four cases, and ran only the new ones.
 
 ## Results with `gpt-oss-120b`
 
@@ -111,8 +111,8 @@ sources don't cover the question. That works for things like parcel weight or cu
 because "monthly" does appear in the documents, just with a different meaning.
 
 I built a second model to check every sentence against the tool results before the answer is shown. It removed
-correct facts: it compared values as text, and a date written "17 Aug, 1 PM" didn't match the tool's
-`2026-08-17T13:00`. Each check also took 8 to 12 seconds, against a 6-second target for the whole answer. So it's
+correct facts: it compared values as text, so a due time written in plain words didn't match the same time in
+the tool's ISO format. Each check also took 8 to 12 seconds, against a 6-second target for the whole answer. So it's
 switched off (`ANSWER_CHECK_ENABLED=false`), and this stays a known failure. The roadmap has the next attempt.
 
 ### Two small fixes after the main run

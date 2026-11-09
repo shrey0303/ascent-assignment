@@ -11,7 +11,7 @@ This is what the AI models cost for the evaluation runs I'm submitting. The brie
 | Reworded set, `gpt-oss-120b` | 22 | USD 0.0294 | `20261108-182423_openai-gpt-oss-120b_holdout_cases.md` |
 | Unseen-data set, `gpt-oss-120b` | 22 | USD 0.0254 | `20261108-183428_openai-gpt-oss-120b_unseen_cases.md` |
 | One unseen case run again (the first try hit an empty account balance) | 1 | USD 0.0008 | `20261108-191132_openai-gpt-oss-120b_unseen_cases.md` |
-| 28 more unseen-data cases (9 Nov) | 28 | USD 0.0331 | `20261109-060241_openai-gpt-oss-120b_unseen_cases.md` |
+| 28 more unseen-data cases | 28 | USD 0.0331 | `20261109-060241_openai-gpt-oss-120b_unseen_cases.md` |
 | **Total** | **227** | **USD 0.2403** | |
 
 These are the app's own estimates at list prices. The injection check runs on Groq's free tier, so it isn't billed.

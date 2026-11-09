@@ -194,7 +194,7 @@ set DATA_DIR=<folder>                                  # export DATA_DIR=<folder
 The second one runs on a rewritten workbook with new ids, new staff names, new records and a Wednesday instead of a
 Sunday. It's my best stand-in for the reviewers' hidden data.
 
-### Results (8 and 9 November 2026, `gpt-oss-120b`)
+### Results (`gpt-oss-120b`)
 
 | Set | Passed | Critical failures |
 |---|---|---|
